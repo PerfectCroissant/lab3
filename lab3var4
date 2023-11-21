@@ -1,0 +1,288 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+
+struct Excursion 
+{
+    string Title;
+    string place;
+    double cost;
+};
+
+
+void addExcursionToFile(const Excursion & excursion) 
+{
+    ofstream outFile("excursions.txt", ios::app);
+    if (outFile.is_open()) 
+    {
+        outFile << excursion.Title << "," << excursion.place << "," << excursion.cost << endl;
+        outFile.close();
+        cout << "Excursion added successfully." << endl;
+    }
+    else
+    {
+        cerr << "Could not open the file for writing." << endl;
+    }
+}
+
+
+void searchExcursionByTitle(const string & title)
+{
+    ifstream inFile("excursions.txt");
+    if (inFile.is_open())
+    {
+        string line;
+        bool found = false;
+        while (getline(inFile, line))
+        {
+            size_t pos = line.find(',');
+            string Title = line.substr(0, pos);
+            if (Title == title) 
+            {
+                ofstream outFile("output.txt", ios::app);
+                outFile << line << endl;
+                cout << "The excursion is found: " << line << endl;
+                found = true;
+                break;
+            }
+        }
+        inFile.close();
+        if (!found) 
+            cout << "An excursion with this name was not found. " << endl;
+    }
+    else
+    {
+        cerr << "Could not open the file for reading." << endl;
+    }
+}
+
+
+void sortExcursionsByCost()
+{
+    ifstream inFile("excursions.txt");
+    if (inFile.is_open())
+    {
+        string lines[100]; // Считаем, что экскурсий <= 100
+        int count = 0;
+        string line;
+        while (getline(inFile, line))
+        {
+            lines[count] = line;
+            count++;
+        }
+        inFile.close();
+        for (int i = 0; i < count - 1; i++)
+        {
+            for (int j = 0; j < count - i - 1; j++) 
+            {
+                size_t pos1 = lines[j].find_last_of(',');
+                size_t pos2 = lines[j + 1].find_last_of(',');
+                double cost1 = stod(lines[j].substr(pos1 + 1));
+                double cost2 = stod(lines[j + 1].substr(pos2 + 1));
+                if (cost1 < cost2) 
+                    swap(lines[j], lines[j + 1]);     
+            }
+        }
+        ofstream outFile("output.txt", ios::app);
+        if (outFile.is_open())
+        {
+            for (int i = 0; i < count; i++)
+                outFile << lines[i] << endl;
+            outFile.close();
+            cout << "Excursions are sorted by cost." << endl;
+        }
+        else
+            cerr << "Could not open the file for writing." << endl;
+    }
+    else
+        cerr << "Could not open the file for reading." << endl;
+}
+
+
+void sortExcursionsByPlace()
+{
+    ifstream inFile("excursions.txt");
+    if (inFile.is_open())
+    {
+        string lines[100]; // Считаем, что экскурсий <= 100
+        int count = 0;
+        string line;
+        while (getline(inFile, line))
+        {
+            lines[count] = line;
+            count++;
+        }
+        inFile.close();
+        for (int i = 0; i < count - 1; i++)
+        {
+            for (int j = 0; j < count - i - 1; j++) 
+            {
+                size_t pos1 = lines[j].find(',');
+                size_t pos2 = lines[j + 1].find(',');
+                string place1 = lines[j].substr(pos1 + 1);
+                string place2 = lines[j + 1].substr(pos2 + 1);
+                if (place1 < place2) 
+                    swap(lines[j], lines[j + 1]);     
+            }
+        }
+        ofstream outFile("output.txt", ios::app);
+        
+        if (outFile.is_open())
+        {
+            for (int i = 0; i < count; i++)
+                outFile << lines[i] << endl;
+            outFile.close();
+            cout << "Excursions are sorted by place." << endl;
+        }
+        else
+            cerr << "Could not open the file for writing." << endl;
+    }
+    else
+        cerr << "Could not open the file for reading." << endl;
+}
+
+
+void requestForCost(const double limit)
+{
+    ifstream inFile("excursions.txt");
+    ofstream outFile("output.txt", ios::app);
+
+    if (inFile.is_open())
+    {
+        string line;
+        while (getline(inFile, line))
+        {
+            string title, place, cost_str;
+            auto cur = line.begin();
+            while (*cur != ',')
+                title += *cur++;
+            ++cur;
+            while (*cur != ',')
+                place += *cur++;
+            ++cur;
+            for (const auto end = line.end(); cur != end; ++cur)
+                cost_str += *cur;
+            double cost = stod(cost_str);
+            if (cost <= limit)
+            {
+                outFile << title << ',' << place << ',' << cost << endl;
+                cout << title << ',' << place << ',' << cost << endl;
+            }
+        }
+        inFile.close();
+        outFile.close();
+    }
+    else
+        cerr << "Could not open the file for reading." << endl;
+}
+
+
+int main()
+{
+    int choice;
+    string title;
+    do
+    {
+        cout << "Menu:" << endl;
+        cout << "1. Fill the file with excursions" << endl;
+        cout << "2. Search for excursions by title" << endl;
+        cout << "3. Sort excursions by cost" << endl;
+        cout << "4. Sort excursions by place" << endl;
+        cout << "5. Add an excursion" << endl;
+        cout << "6. Data output on request for cost" << endl;
+        cout << "0. Exit" << endl;
+        cout << "Select an action: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+            case 1:
+            {
+                {
+                    ofstream outFile("excursions.txt");
+                    outFile.close();
+                }
+                {
+                    ofstream outFile("output.txt");
+                    outFile.close();
+                }
+                
+                cin.ignore();
+                string Title, place;
+                double cost;
+                cout << "Enter the title of the excursion: ";
+                getline(cin, Title);
+                while (Title.empty() == 0)
+                {
+                    cout << "Enter the place of the excursion: ";
+                    getline(cin, place);
+                    cout << "Enter the cost of the excursion: ";
+                    cin >> cost;
+                    Excursion newExcursion = {Title, place, cost};
+                    addExcursionToFile(newExcursion);
+                    cin.ignore();
+                    cout << "Enter the title of the excursion: ";
+                    getline(cin, Title);
+                }
+                cout << "Input interrupted" << endl;
+                break;
+            }
+            case 2:
+            {
+                cin.ignore();
+                cout << "Enter the title of the excursion to search for: ";
+                getline(cin, title);
+                searchExcursionByTitle(title);
+                break;
+            }
+            case 3: 
+            {
+                sortExcursionsByCost();
+                break;
+            }
+            case 4:
+            {
+                sortExcursionsByPlace();
+                break;
+            }
+            case 5:
+            {
+                cin.ignore();
+                string Title, place;
+                double cost;
+                cout << "Enter the title of the excursion: ";
+                getline(cin, Title);
+                cout << "Enter the place of the excursion: ";
+                getline(cin, place);
+                cout << "Enter the cost of the excursion: ";
+                cin >> cost;
+                Excursion newExcursion = {Title, place, cost};
+                addExcursionToFile(newExcursion);
+                break;
+            }
+            case 6:
+            {
+                double cost;
+                cout << "Enter the cost requirement" << endl;
+                cin >> cost;
+                requestForCost(cost);
+                break;
+            }
+            case 0:
+            {
+                cout << "The program is completed." << endl;
+                break;
+            }
+            default:
+            {
+                cout << "Incorrect choice. Try again." << endl;
+                break;
+            }
+        } 
+    }
+    while (choice != 0);
+
+    return 0;
+}
